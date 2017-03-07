@@ -13,7 +13,25 @@ FB.options({
 
 //    Step(
 var accessToken = null;
-function getAccessToken() {
+
+function getData() {
+    var parameters = {};
+    parameters.access_token = accessToken;
+    //this works immediately without needing to fetch token:
+    //parameters.access_token = FB.options('appId') + '|' + FB.options('appSecret');
+    FB.api('511363735542881/likes', 'get', parameters , function (result) {
+	console.log(result);
+	if(!result || result.error) {
+	    console.log("error: " + result);
+            //return res.send(500, result || 'error');
+            // return res.send(500, 'error');
+	}
+    
+	//return res.redirect('/');
+    });
+}
+
+function getAccessToken(next) {
     FB.napi('oauth/access_token', {
         client_id:      FB.options('appId'),
         client_secret:  FB.options('appSecret'),
@@ -23,24 +41,13 @@ function getAccessToken() {
         var token = result.access_token;
 	console.log("Token: " + token);
 	accessToken = token;
+	next();
     }
 	   );
 }
-getAccessToken();
 
-var parameters = {};
-//parameters.access_token = accessToken;
-parameters.access_token = FB.options('appId') + '|' + FB.options('appSecret');
-FB.api('511363735542881/likes', 'get', parameters , function (result) {
-    console.log(result);
-    if(!result || result.error) {
-	console.log("error: " + result);
-        //return res.send(500, result || 'error');
-        // return res.send(500, 'error');
-    }
-    
-    //return res.redirect('/');
-});
+getAccessToken(getData);
+
 
 /*        },
         function extendAccessToken(err, result) {
