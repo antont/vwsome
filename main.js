@@ -12,13 +12,13 @@ FB.options({
 });
 
 //    Step(
-var accessToken = null;
+//var accessToken = null;
 
 function getData() {
     var parameters = {};
-    parameters.access_token = accessToken;
+    //parameters.access_token = accessToken;
     //this works immediately without needing to fetch token:
-    //parameters.access_token = FB.options('appId') + '|' + FB.options('appSecret');
+    parameters.access_token = FB.options('appId') + '|' + FB.options('appSecret');
     FB.api('511363735542881/likes', 'get', parameters , function (result) {
 	console.log(result);
 	if(!result || result.error) {
@@ -30,7 +30,9 @@ function getData() {
 	//return res.redirect('/');
     });
 }
+getData(); //for simple version which does not need to fetch token
 
+/*
 function getAccessToken(next) {
     FB.napi('oauth/access_token', {
         client_id:      FB.options('appId'),
@@ -45,8 +47,7 @@ function getAccessToken(next) {
     }
 	   );
 }
-
-getAccessToken(getData);
+getAccessToken(getData);*/
 
 
 /*        },
