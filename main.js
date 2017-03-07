@@ -2,7 +2,7 @@
 console.log("Hello World!");
 
 var FB     = require('fb'),
-    Step   = require('step'),
+//    Step   = require('step')
     config = require('./config');
 
 FB.options({
