@@ -1,5 +1,8 @@
 /* Hello World! program in Node.js */
 console.log("Hello World!");
+console.log([].length)
+
+var like_counts = {}; //the whole point of the code here is to get the like counts to here
 
 var FB     = require('fb'),
 //    Step   = require('step')
@@ -14,23 +17,93 @@ FB.options({
 //    Step(
 //var accessToken = null;
 
-function getData() {
-    var parameters = {};
+var pending = 0; //desperate attempt to make waiting for completion simply
+
+function getIDs(next) {
+    var guids = ["194e85af-9ae7-4c35-8c7b-1ad4dc967144", "4c85a65e-5d93-496c-98f3-1fc3a4705d27", "646d257a-554a-4c45-8d11-5c19461a8e8c", "c018df45-8516-40ed-9faf-90efe1d15c75", "5936dd22-f953-4b22-a766-ac192fc58061"];
+    var baseurl = "http://hiukkavaara3d.ouka.fi/vanhahiukkavaara/";
+    var urls = guids.map(guid => baseurl + guid);
+    var urlsstring = urls.join(","); //baseurl + "194e85af-9ae7-4c35-8c7b-1ad4dc967144",
+    console.log(urls);
+    var parameters = {
+	//id: "http://www.google.com"
+	ids: urlsstring
+//	access_token: FB.options('appId') + '|' + FB.options('appSecret')
+    }
     //parameters.access_token = accessToken;
-    //this works immediately without needing to fetch token:
-    parameters.access_token = FB.options('appId') + '|' + FB.options('appSecret');
-    FB.api('511363735542881/likes', 'get', parameters , function (result) {
-	console.log(result);
+
+    //Jeren tehokas test plan
+    var obid = null;
+    FB.api('/', 'get', parameters , function (result) {
+	console.log("IDS - RESULT: %j", result);
+	if(!result || result.error) {
+	    console.log("error: " + result);
+            //return res.send(500, result || 'error');
+	} else {
+	    guids.map(guid => {
+		var url = baseurl + guid;
+		var ogob = result[url].og_object;
+		if (ogob) {
+		    pending += 1;
+		    next(guid, ogob.id);
+		} else {
+		    console.log("IDS - WARNING: no Open Graph object for URL %s", url);
+		}
+	    });
+	    /*var data = result[urls[0]];
+	    obid = data.og_object.id;
+	    console.log("OG ID: " + obid);
+	    next(obid);*/
+	}
+    });
+}
+
+function getData(guid, obid) {
+    var parameters = {
+	//id: "http://www.google.com",
+	//id: "http://hiukkavaara3d.ouka.fi/vanhahiukkavaara/" + "194e85af-9ae7-4c35-8c7b-1ad4dc967144",
+	//fields: "og_object,likes.summary(true).limit(0),share",
+	
+	//this works immediately without needing to fetch token:
+	access_token: FB.options('appId') + '|' + FB.options('appSecret')
+    }
+    //parameters.access_token = accessToken;
+
+    //test ob with more likes: 
+    //var obid = "511363735542881"
+    //Jeren tehokas test plan
+    //var obid = "972670946171824";
+    FB.api(obid + '/likes', 'get', parameters , function (result) {
+    //FB.api('/', 'get', parameters , function (result) {
+	console.log("LIKES RESULT: %j", result);
 	if(!result || result.error) {
 	    console.log("error: " + result);
             //return res.send(500, result || 'error');
             // return res.send(500, 'error');
+	} else {
+	    console.log(result.data);
+
+	    //console.log([{}].length);
+	    var count = result.data.length;
+	    console.log("LIKE COUNT - " + guid + " : " + count);
+	    like_counts[guid] = count;
+	    pending -= 1;
+	    if (pending == 0) {
+		console.log("DONE!");
+		uploadData();
+	    }
 	}
     
 	//return res.redirect('/');
     });
+    //http://graph.facebook.com/?fields=og_object%7Blikes.summary(true).limit(0)%7D,share&id=http://www.google.com
 }
-getData(); //for simple version which does not need to fetch token
+
+function uploadData() {
+    console.log(like_counts);
+}
+
+getIDs(getData); //for simple version which does not need to fetch token - does fetch id now
 
 /*
 function getAccessToken(next) {
